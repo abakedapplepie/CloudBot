@@ -191,6 +191,10 @@ def generate_duck():
     dnoise = random.choice(duck_noise)
     rn = random.randint(1, len(dnoise) - 1)
     dnoise = dnoise[:rn] + u'\u200b' + dnoise[rn:]
+    if ri == 1:
+        dtail = "8====D"
+        dbody = "~~~"
+        dnoise = "FAP FAP FAP!"
     return (dtail, dbody, dnoise)
 
 
