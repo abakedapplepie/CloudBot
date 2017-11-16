@@ -17,3 +17,5 @@ pyenchant
 pythonwhois
 imgurpython
 isodate
+praw
+pillow
