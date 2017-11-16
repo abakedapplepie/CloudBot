@@ -28,7 +28,6 @@ def load_key(bot):
     global reddit_username
     global reddit_password
     global reddit_subreddit
-    global reddit_title
     global reddit_agent
     api_key = bot.config.get("api_keys", {}).get("imgur_client_id")
     reddit_api_id = bot.config.get("api_keys", {}).get("reddit_api_id")
@@ -46,7 +45,7 @@ def load_key(bot):
 
 @hook.event([EventType.message, EventType.action], ignorebots=False, singlethread=True)
 def track(event, conn):
-    if str(event.content) != "!comic":
+    if str(event.content).startswith("!comic"):
         key = (event.chan, conn.name)
         if key not in mcache:
             mcache[key] = []
@@ -59,7 +58,8 @@ def track(event, conn):
 @hook.command("comic", autohelp=False)
 def comic(conn, chan, text, nick):
     """comic <title string> - creates a comic and posts it to reddit. title is used for reddit title and imgur title """
-    global reddit_title
+
+    reddit_title = "INSERT TITLE HERE"
     args = text
     if len(args) > 0:
         reddit_title = args
