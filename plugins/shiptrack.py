@@ -65,7 +65,7 @@ def gettrack(carrier, tracking):
         status_details = data["tracking_status"]["status_details"]
     if data["tracking_status"]["object_updated"]:
         last_update = data["tracking_status"]["object_updated"]
-    location = "{}, {}".format(data["tracking_status"]["location"]["city"], data["tracking_status"]["location"]["city"])
+    location = "{}, {}".format(data["tracking_status"]["location"]["city"], data["tracking_status"]["location"]["state"])
     if data["tracking_status"]["status_date"]:
         location_date = data["tracking_status"]["status_date"]
     return "Package #{} estiated arrival {}. Current status is {}: {}. Last checking was in {} at {} (Last updated {})".format(trackingno, estimatedarrival, status, status_details, location, location_date, last_update)
