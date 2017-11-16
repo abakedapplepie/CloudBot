@@ -10,6 +10,11 @@ import requests
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
 
+@hook.on_start()
+def load_key(bot):
+    global shippo_api_key
+    shippo_api_key = bot.config.get("api_keys", {}).get("shippo_api_key")
+
 @hook.command("fedex", autohelp=False)
 def fedex(text, reply):
     args = text.split(' ')
