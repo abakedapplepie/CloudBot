@@ -92,7 +92,8 @@
         "brewerydb": "",
         "reddit_api_id": "",
         "reddit_api_secret": "",
-        "giphy": ""
+        "giphy": "",
+        "shippo_api_key": ""
     },
     "database": "sqlite:///cloudbot.db",
     "plugin_loading": {
