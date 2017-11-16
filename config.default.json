@@ -1,33 +1,27 @@
 {
     "connections": [
         {
-            "name": "esper",
+            "name": "snoonet",
             "connection": {
-                "server": "irc.esper.net",
-                "port": 6667,
-                "ssl": false,
+                "server": "irc.snoonet.org",
+                "port": 6697,
+                "ssl": true,
                 "ignore_cert": true,
                 "password": ""
             },
-            "nick": "MyCloudBot",
-            "user": "cloudbot",
+            "nick": "beeerbot",
+            "user": "beeerbot",
             "avoid_notices": false,
             "channels": [
-                "#cloudbot",
-                "#cloudbot2"
+                "#beeerbot",
+                "#beer"
             ],
             "disabled_commands": [],
             "acls": {},
-            "sasl": {
-                "enabled": false,
-                "mechanism": "PLAIN",
-                "user": "",
-                "pass": ""
-            },
             "nickserv": {
-                "enabled": false,
+                "enabled": true,
                 "nickserv_password": "",
-                "nickserv_user": "",
+                "nickserv_user": "beeerbot",
                 "nickserv_name": "nickserv",
                 "nickserv_command": "IDENTIFY"
             },
@@ -46,18 +40,19 @@
                         "botcontrol",
                         "plpaste",
                         "permissions_users",
-                        "op"
+                        "op",
+                        "starthunt"
                     ],
                     "users": [
-                        "examplea!user@example.com",
-                        "exampleb!user@example.com"
+                        ""
                     ]
                 },
                 "moderators": {
                     "perms": [
                         "addfactoid",
                         "delfactoid",
-                        "ignore"
+                        "ignore",
+                        "bang"
                     ],
                     "users": [
                         "examplec!user@example.com"
@@ -65,14 +60,15 @@
                 }
             },
             "plugins": {},
-            "command_prefix": "."
+            "command_prefix": "!"
         }
     ],
     "api_keys": {
         "tvdb": "",
         "bing_azure": "",
         "wolframalpha": "",
-        "lastfm": "",
+        "lastfm_key": "",
+        "lastfm_secret": "",
         "rottentomatoes": "",
         "soundcloud": "",
         "twitter_consumer_key": "",
@@ -93,7 +89,10 @@
         "yandex_translate": "",
         "lyricsnmusic": "",
         "cleverbot": "",
-        "brewerydb": ""
+        "brewerydb": "",
+        "reddit_api_id": "",
+        "reddit_api_secret": "",
+        "giphy": ""
     },
     "database": "sqlite:///cloudbot.db",
     "plugin_loading": {
@@ -104,14 +103,14 @@
         "whitelist": []
     },
     "web": {
-        "enabled": false,
-        "address": "0.0.0.0",
-        "port": 8090,
-        "bot_name": "CloudBot"
+      "enabled": false,
+      "address": "0.0.0.0",
+      "port": 8090,
+      "bot_name": "beeerbot"
     },
     "reloading": {
         "config_reloading": true,
-        "plugin_reloading": false
+        "plugin_reloading": true
     },
     "logging": {
         "console_debug": false,
@@ -120,5 +119,18 @@
         "show_motd": true,
         "show_server_info": true,
         "raw_file_log": false
+    },
+    "comic_options": {
+        "background": "backgrounds/cantillon.jpg",
+        "font": "fonts/Calibri.ttf",
+        "font_size": 16,
+        "text_color": "",
+        "buffer_size": 30,
+        "private_save_path": "/var/tmp/pathhere",
+        "reddit_username": "",
+        "reddit_password": "",
+        "reddit_subreddit": "",
+        "reddit_agent": "",
+        "private_url_prefix": "http://example.com/myprefix/"
     }
 }
