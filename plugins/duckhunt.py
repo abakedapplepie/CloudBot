@@ -191,6 +191,7 @@ def generate_duck():
     dnoise = random.choice(duck_noise)
     rn = random.randint(1, len(dnoise) - 1)
     dnoise = dnoise[:rn] + u'\u200b' + dnoise[rn:]
+    ri = random.randint(1, 75)
     if ri == 1:
         dtail = "8====D"
         dbody = "~~~"
