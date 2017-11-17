@@ -45,7 +45,7 @@ def load_key(bot):
 
 @hook.event([EventType.message, EventType.action], ignorebots=False, singlethread=True)
 def track(event, conn):
-    if str(event.content).startswith("!comic"):
+    if not str(event.content).startswith("!comic"):
         key = (event.chan, conn.name)
         if key not in mcache:
             mcache[key] = []
@@ -125,16 +125,24 @@ def comic(conn, chan, text, nick):
             
             try:
                 submission = reddit.subreddit(reddit_subreddit).submit(reddit_title, url=result)
+                del args
+                del reddit_title
                 return "https://redd.it/{}".format(submission.id)
             except Exception as e:
                 print("FAILED to post to reddit - but hey, at least we signed in!")
                 print(repr(e))
+                del args
+                del reddit_title
                 return val['data']['link']
         except Exception as e:
             print("FAILED to authenticate reddit")
             print(repr(e))
+            del args
+            del reddit_title
             return val['data']['link']
     except KeyError:
+            del args
+        delreddit_title
         return val['data']['error']        
 
 def wrap(st, font, draw, width):
