@@ -18,18 +18,8 @@ mcache = dict()
 
 @hook.on_start()
 def load_key(bot):
-    global api_key
-    global background_file
-    global font_file
-    global font_size
-    global buffer_size
-    global reddit_api_id
-    global reddit_api_secret
-    global reddit_username
-    global reddit_password
-    global reddit_subreddit
-    global reddit_agent
-    api_key = bot.config.get("api_keys", {}).get("imgur_client_id")
+    global imgur_client_id, background_file, font_file, font_size, buffer_size, reddit_api_id, reddit_api_secret, reddit_username, reddit_password, reddit_subreddit, reddit_agent, dead_space, total_characters, default_submission_title
+    imgur_client_id = bot.config.get("api_keys", {}).get("imgur_client_id")
     reddit_api_id = bot.config.get("api_keys", {}).get("reddit_api_id")
     reddit_api_secret = bot.config.get("api_keys", {}).get("reddit_api_secret")
     reddit_username = bot.config.get("comic_options", {}).get("reddit_username")
@@ -40,111 +30,120 @@ def load_key(bot):
     font_file = bot.config.get("comic_options", {}).get("font")
     font_size = bot.config.get("comic_options", {}).get("font_size")
     buffer_size = bot.config.get("comic_options", {}).get("buffer_size")
-    reddit_title = "INSERT TITLE HERE"
+    dead_space = bot.config.get("comic_options", {}).get("dead_space")
+    total_characters = bot.config.get("comic_options", {}).get("total_characters")
+    default_submission_title = bot.config.get("comic_options", {}).get("default_submission_title")
 
 
 @hook.event([EventType.message, EventType.action], ignorebots=False, singlethread=True)
 def track(event, conn):
-    if not str(event.content).startswith("!comic"):
+    if not str(event.content).startswith(str("{}comic").format(conn.config["command_prefix"])):
         key = (event.chan, conn.name)
         if key not in mcache:
             mcache[key] = []
 
         value = (datetime.now(), event.nick, str(event.content))
         mcache[key].append(value)
-        mcache[key] = mcache[key][-1*buffer_size:]
+        
+        if len(mcache[key]) > buffer_size:
+            mcache[key] = mcache[key][-1*buffer_size:]
 
 
 @hook.command("comic", autohelp=False)
 def comic(conn, chan, text, nick):
     """comic <title string> - creates a comic and posts it to reddit. title is used for reddit title and imgur title """
-
-    reddit_title = "INSERT TITLE HERE"
-    args = text
-    if len(args) > 0:
-        reddit_title = args
-    text = chan
-    try:
-        msgs = mcache[(text, conn.name)]
-    except KeyError:
-        return "Not Enough Messages."
-    sp = 0
-    chars = set()
-
-    for i in range(len(msgs)-1, 0, -1):
-        sp += 1
-        diff = msgs[i][0] - msgs[i-1][0]
-        chars.add(msgs[i][1])
-        if sp > 10 or diff.total_seconds() > 120 or len(chars) > 3:
-            break
-
-    msgs = msgs[-1*sp:]
-
-    panels = []
-    panel = []
-
-    for (d, char, msg) in msgs:
-        if len(panel) == 2 or len(panel) == 1 and panel[0][0] == char:
-            panels.append(panel)
-            panel = []
-        if msg.count('\x01') >= 2:
-            ctcp = msg.split('\x01', 2)[1].split(' ', 1)
-            if len(ctcp) == 1:
-                ctcp += ['']
-            if ctcp[0] == 'ACTION':
-                msg = '*'+ctcp[1]+'*'
-        panel.append((char, msg))
-
-    panels.append(panel)
-    print(repr(chars))
-    print(repr(panels))
-
-    # Initialize a variable to store our image
-    image_comic = BytesIO()
-
-    # Save the completed composition to a JPEG in memory
-    make_comic(chars, panels).save(image_comic, format="JPEG", quality=85)
-
-    # Get API Key, upload the comic to imgur
-    headers = {'Authorization': 'Client-ID ' + api_key}
-    base64img = base64.b64encode(image_comic.getvalue())
-    url = "https://api.imgur.com/3/upload.json"
-    r = requests.post(url, data={'key': api_key, 'image': base64img, 'title': reddit_title}, headers=headers, verify=False)
-    val = json.loads(r.text)
-    try:
-        result = val['data']['link']
-        try:
-            print("Authenticating reddit")
-            reddit = praw.Reddit(
-                client_id=reddit_api_id,
-                client_secret=reddit_api_secret,
-                password=reddit_password,
-                user_agent=reddit_agent,
-                username=reddit_username)
-            print("Authenticaed as {}".format(reddit.user.me()))
+    try: 
+        if len(text) > 0:
+            reddit_title = text
+        else:
+            reddit_title = default_submission_title
             
-            try:
-                submission = reddit.subreddit(reddit_subreddit).submit(reddit_title, url=result)
-                del args
-                del reddit_title
-                return "https://redd.it/{}".format(submission.id)
-            except Exception as e:
-                print("FAILED to post to reddit - but hey, at least we signed in!")
-                print(repr(e))
-                del args
-                del reddit_title
-                return val['data']['link']
-        except Exception as e:
-            print("FAILED to authenticate reddit")
-            print(repr(e))
-            del args
-            del reddit_title
-            return val['data']['link']
-    except KeyError:
-            del args
-        delreddit_title
-        return val['data']['error']        
+        try:
+            msgs = mcache[(chan, conn.name)]
+        except KeyError:
+            return "Not Enough Messages."
+            
+        msg_count = 0
+        msgs_length = buffer_size // 3
+        
+        chars = set()
+        
+        print("Messages:")
+        print(repr(msgs))
+        print("Characters:")
+        print(repr(chars))
+        
+        for i in range(len(msgs)-1, -1, -1):
+            msg_count += 1
+            diff = msgs[i][0] - msgs[i-1][0]
+            chars.add(msgs[i][1])
+            if msg_count >= msgs_length or diff.total_seconds() > dead_space or len(chars) > total_characters:
+                break
 
+        # msgs = msgs[-1*msg_count:]
+
+        panels = []
+        panel = []
+
+        for (d, char, msg) in msgs:
+            if len(panel) == 2 or len(panel) == 1 and panel[0][0] == char:
+                panels.append(panel)
+                panel = []
+            if msg.count('\x01') >= 2:
+                ctcp = msg.split('\x01', 2)[1].split(' ', 1)
+                if len(ctcp) == 1:
+                    ctcp += ['']
+                if ctcp[0] == 'ACTION':
+                    msg = '*'+ctcp[1]+'*'
+            panel.append((char, msg))
+
+        panels.append(panel)
+        print(repr(panels))
+
+        # Initialize a variable to store our image
+        image_comic = BytesIO()
+
+        # Save the completed composition to a JPEG in memory
+        make_comic(chars, panels).save(image_comic, format="JPEG", quality=85)
+
+        # Get API Key, upload the comic to imgur
+        headers = {'Authorization': 'Client-ID ' + imgur_client_id}
+        base64img = base64.b64encode(image_comic.getvalue())
+        url = "https://api.imgur.com/3/upload.json"
+        r = requests.post(url, data={'key': imgur_client_id, 'image': base64img, 'title': reddit_title}, headers=headers, verify=False)
+        val = json.loads(r.text)
+        try:
+            result = val['data']['link']
+            try:
+                print("Authenticating reddit")
+                reddit = praw.Reddit(
+                    client_id=reddit_api_id,
+                    client_secret=reddit_api_secret,
+                    password=reddit_password,
+                    user_agent=reddit_agent,
+                    username=reddit_username)
+                print("Authenticaed as {}".format(reddit.user.me()))
+                
+                try:
+                    submission = reddit.subreddit(reddit_subreddit).submit(reddit_title, url=result)
+                    return "https://redd.it/{}".format(submission.id)
+                except Exception as e:
+                    print("FAILED to post to reddit - but hey, at least we signed in!")
+                    print(repr(e))
+                    return val['data']['link']
+            except Exception as e:
+                print("FAILED to authenticate reddit")
+                print(repr(e))
+                return val['data']['link']
+        except KeyError:
+            delreddit_title
+            return val['data']['error']        
+
+    except Exception as e:
+        print("FAILED to make comic")
+        print(repr(e))
+        return "i am so so sorry master but something went wrong do it again pls"
+            
 def wrap(st, font, draw, width):
     st = st.split()
     mw = 0
