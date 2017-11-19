@@ -1,7 +1,7 @@
 # WeedBotRefresh's comic.py - based on nekosune's comic.py
 
 from cloudbot import hook
-import os
+import sys, os
 import praw
 from random import shuffle
 from PIL import Image, ImageDraw, ImageFont
@@ -44,9 +44,7 @@ def track(event, conn):
 
         value = (datetime.now(), event.nick, str(event.content))
         mcache[key].append(value)
-        
-        if len(mcache[key]) > buffer_size:
-            mcache[key] = mcache[key][-1*buffer_size:]
+        mcache[key] = mcache[key][-1*buffer_size:]
 
 
 @hook.command("comic", autohelp=False)
@@ -64,7 +62,6 @@ def comic(conn, chan, text, nick):
             return "Not Enough Messages."
             
         msg_count = 0
-        msgs_length = buffer_size // 3
         
         chars = set()
         
@@ -77,7 +74,7 @@ def comic(conn, chan, text, nick):
             msg_count += 1
             diff = msgs[i][0] - msgs[i-1][0]
             chars.add(msgs[i][1])
-            if msg_count >= msgs_length or diff.total_seconds() > dead_space or len(chars) > total_characters:
+            if msg_count >= buffer_size or diff.total_seconds() > dead_space or len(chars) > total_characters:
                 break
 
         # msgs = msgs[-1*msg_count:]
@@ -141,7 +138,9 @@ def comic(conn, chan, text, nick):
 
     except Exception as e:
         print("FAILED to make comic")
-        print(repr(e))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         return "i am so so sorry master but something went wrong do it again pls"
             
 def wrap(st, font, draw, width):
