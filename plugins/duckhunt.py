@@ -10,6 +10,9 @@ from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
 
+MSG_DELAY = bot.config.get("duckhunt_options", {}).get("min_lines")
+MASK_REQ = bot.config.get("duckhunt_options", {}).get("min_users")
+
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
 duck_noise = ["QUACK!", "FLAP FLAP!", "quack!"]
@@ -61,8 +64,6 @@ game_status structure
 }
 """
 
-MSG_DELAY = 10
-MASK_REQ = 3
 scripters = defaultdict(int)
 game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
@@ -136,13 +137,16 @@ def start_hunt(bot, chan, message, conn):
         game_status[conn.name][chan]['game_on'] = 1
     set_ducktime(chan, conn.name)
     message(
-        "Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.",
+        "Ducks have been spotted nearby. See how many you can shoot or save. use {}bang to shoot or {}befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.".format(conn.config["command_prefix"], conn.config["command_prefix"]),
         chan)
 
 
 def set_ducktime(chan, conn):
     global game_status
-    game_status[conn][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    next_duck = random.randint(int(time()) + 480, int(time()) + 3600)
+    game_status[conn][chan]['next_duck_time'] = next_duck
+    
+    print("next duck is in: {} seconds".format(next_duck-time()))
     # game_status[conn][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
     game_status[conn][chan]['duck_status'] = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
