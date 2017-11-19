@@ -47,8 +47,7 @@ def bpost(text, reply):
            reply("You forgot to include a tracking number")
     return gettrack("bpost", tracking)
 
-def gettrack(carrier, tracking):
-    shippo_api_key = bot.config.get("api_keys", {}).get("shippo_api_key")
+def gettrack(carrier, tracking):    
     url = "https://api.goshippo.com/tracks/{}/{}".format(carrier, tracking)
     headers = {"Authorization": "ShippoToken {}".format(shippo_api_key)}
     r = requests.get(url, headers=headers)
