@@ -10,8 +10,11 @@ from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
 
-MSG_DELAY = bot.config.get("duckhunt_options", {}).get("min_lines")
-MASK_REQ = bot.config.get("duckhunt_options", {}).get("min_users")
+@hook.on_start()
+def load_key(bot):
+    global MSG_DELAY, MASK_REQ
+    MSG_DELAY = bot.config.get("duckhunt_options", {}).get("min_lines")
+    MASK_REQ = bot.config.get("duckhunt_options", {}).get("min_users")
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
