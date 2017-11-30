@@ -136,5 +136,9 @@
         "reddit_subreddit": "",
         "reddit_agent": "",
         "private_url_prefix": "http://example.com/myprefix/"
+    },
+    "duckhunt_options": {
+        "min_users": 2,
+        "min_lines": 10
     }
 }
