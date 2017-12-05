@@ -31,6 +31,10 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
+
+    decoy = re.compile('[o○O0öøóóȯôőŏᴏōοÔ∅ΘΟθσ🔘](<|>|＜)')
+    colors_re = re.compile("\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
+
     global factoid_cache
     factoid_cache = defaultdict(lambda: default_dict)
     for row in db.execute(table.select()):
@@ -38,6 +42,9 @@ def load_cache(db):
         chan = row["chan"]
         word = row["word"]
         data = row["data"]
+
+        if decoy.search(colors_re.sub("", data.replace('\u200b', '').replace(' ', '').replace('\u202f','').replace('\x02', ''))):
+            data = "{} CHUGS DICKS --> {}".format(row["nick"], data)
         if chan not in factoid_cache:
             factoid_cache.update({chan:{word:data}})
         elif word not in factoid_cache[chan]:
@@ -74,7 +81,7 @@ def del_factoid(db, chan, word):
     load_cache(db)
 
 
-@hook.command("r","remember", permissions=["op", "chanop"])
+@hook.command("r","remember")
 def remember(text, nick, db, chan, notice):
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
@@ -107,7 +114,7 @@ def remember(text, nick, db, chan, notice):
     add_factoid(db, word, chan, data, nick)
 
 
-@hook.command("f","forget", permissions=["op", "chanop"])
+@hook.command("f","forget")
 def forget(text, chan, db, notice):
     """<word> - forgets previously remembered <word>"""
     global factoid_cache
