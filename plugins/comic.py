@@ -4,6 +4,7 @@ from cloudbot import hook
 import sys, os
 import praw
 from random import shuffle
+import random
 from PIL import Image, ImageDraw, ImageFont
 import base64
 import requests
@@ -15,6 +16,8 @@ from cloudbot.event import EventType
 
 mcache = dict()
 
+lol = ['mfw', 'dae', 'member', 'tfw', 'lol']
+lol_count = 4
 
 @hook.on_start()
 def load_key(bot):
@@ -50,12 +53,7 @@ def track(event, conn):
 @hook.command("comic", autohelp=False)
 def comic(conn, chan, text, nick):
     """comic <title string> - creates a comic and posts it to reddit. title is used for reddit title and imgur title """
-    try: 
-        if len(text) > 0:
-            reddit_title = text
-        else:
-            reddit_title = default_submission_title
-            
+    try:             
         try:
             msgs = mcache[(chan, conn.name)]
         except KeyError:
@@ -81,8 +79,17 @@ def comic(conn, chan, text, nick):
 
         panels = []
         panel = []
+        
+        i = 0
+        
+        asdf = random.randint(0, msg_count)
 
         for (d, char, msg) in msgs:
+            if i == asdf:
+                if len(text) > 0:
+                    reddit_title = text
+                else:
+                    reddit_title = msg
             if len(panel) == 2 or len(panel) == 1 and panel[0][0] == char:
                 panels.append(panel)
                 panel = []
@@ -93,8 +100,10 @@ def comic(conn, chan, text, nick):
                 if ctcp[0] == 'ACTION':
                     msg = '*'+ctcp[1]+'*'
             panel.append((char, msg))
+            i += 1
 
         panels.append(panel)
+        print("Panels:")
         print(repr(panels))
 
         # Initialize a variable to store our image
@@ -123,17 +132,21 @@ def comic(conn, chan, text, nick):
                 
                 try:
                     submission = reddit.subreddit(reddit_subreddit).submit(reddit_title, url=result)
-                    return "https://redd.it/{}".format(submission.id)
+                    submission_id = submission.id
+                    del submission, reddit, r, base64img, image_comic
+                    return "https://redd.it/{} {} {}".format(submission_id, lol[random.randint(0, lol_count)], reddit_title)
                 except Exception as e:
                     print("FAILED to post to reddit - but hey, at least we signed in!")
                     print(repr(e))
+                    del submission, reddit, r, base64img, image_comic
                     return val['data']['link']
             except Exception as e:
                 print("FAILED to authenticate reddit")
                 print(repr(e))
+                del submission, reddit, r, base64img, image_comic
                 return val['data']['link']
         except KeyError:
-            delreddit_title
+            del submission, reddit, r, base64img, image_comic
             return val['data']['error']        
 
     except Exception as e:
@@ -141,6 +154,7 @@ def comic(conn, chan, text, nick):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(exc_type, fname, exc_tb.tb_lineno)
+        del submission, reddit, r, base64img, image_comic
         return "i am so so sorry master but something went wrong do it again pls"
             
 def wrap(st, font, draw, width):
